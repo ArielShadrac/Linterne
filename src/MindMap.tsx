@@ -125,7 +125,7 @@ export function MindMapViewer({d,onClose,onHome}:{d:Card;onClose:()=>void;onHome
   <ul className="sr">{d.it.map((s,i)=><li key={i}>{s}</li>)}</ul>
   <header className="mv-top" ref={hdr}>
    <button className="ib" onClick={onClose} aria-label="Fermer la carte" autoFocus><Icon n="back"/></button>
-   <div className="mv-ti"><small>Q{d.id} · carte mentale · {d.it.length} nœuds</small><b>{d.q}</b></div>
+   <div className="mv-ti"><small>Q{d.id%1000} · carte mentale · {d.it.length} nœuds</small><b>{d.q}</b></div>
    <button className="pill" onClick={onHome}><Icon n="home" s={18}/><span>Accueil</span></button>
   </header>
   <AnimatePresence>{hint&&<motion.p className="mv-hint" exit={{opacity:0}}>Glisse · pince pour zoomer · déplace un nœud</motion.p>}</AnimatePresence>
@@ -163,7 +163,7 @@ export async function exportPng(d:Card,o:Off={}){
  const g=geo(d,o),c=col(),w=g.bb.w+PX*2,h=g.bb.h+PX*2+FT,S=Math.min(3,8192/Math.max(w,h))
  const cv=document.createElement('canvas');cv.width=Math.round(w*S);cv.height=Math.round(h*S)
  const x=cv.getContext('2d')!;x.scale(S,S);x.fillStyle=c.bg;x.fillRect(0,0,w,h)
- x.fillStyle=c.m;x.textAlign='left';x.font=`600 11px ${FF}`;x.fillText(`l'interne · Q${d.id}`,PX,h-PX*.55)
+ x.fillStyle=c.m;x.textAlign='left';x.font=`600 11px ${FF}`;x.fillText(`l'interne · Q${d.id%1000}`,PX,h-PX*.55)
  x.translate(PX-g.bb.x,PX-g.bb.y)
  x.lineWidth=1.5;x.strokeStyle=c.m;x.globalAlpha=.55
  g.ln.forEach(l=>{const m=(l.x1+l.x2)/2;x.beginPath();x.moveTo(l.x1,l.y1);x.bezierCurveTo(m,l.y1,m,l.y2,l.x2,l.y2);x.stroke()})
@@ -174,7 +174,7 @@ export async function exportPng(d:Card,o:Off={}){
  x.fillStyle=c.on;x.textAlign='center';x.font=`600 13px ${FF}`;r.l.forEach((s,k)=>x.fillText(s,r.x+r.w/2,r.y+10+k*16+12))
  const blob=await new Promise<Blob|null>(res=>cv.toBlob(res,'image/png'))
  if(!blob)throw new Error('png')
- save(blob,`carte-q${d.id}.png`)
+ save(blob,`carte-q${d.id%1000}.png`)
 }
 
 const esc=(s:string)=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
@@ -183,7 +183,7 @@ export async function exportSvg(d:Card,o:Off={}){
  const g=geo(d,o),c=col(),w=g.bb.w+PX*2,h=g.bb.h+PX*2+FT
  let s=`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" font-family="${FF}">`
  s+=`<rect width="${w}" height="${h}" fill="${c.bg}"/>`
- s+=`<text x="${PX}" y="${h-PX*.55}" font-size="11" font-weight="600" fill="${c.m}">l'interne · Q${d.id}</text>`
+ s+=`<text x="${PX}" y="${h-PX*.55}" font-size="11" font-weight="600" fill="${c.m}">l'interne · Q${d.id%1000}</text>`
  s+=`<g transform="translate(${PX-g.bb.x} ${PX-g.bb.y})">`
  g.links.forEach(p=>{s+=`<path d="${p}" fill="none" stroke="${c.m}" stroke-opacity=".55" stroke-width="1.5"/>`})
  g.nodes.forEach(n=>{s+=`<rect x="${n.x}" y="${n.y}" width="${n.w}" height="${n.h}" rx="10" fill="${c.surf}" stroke="${c.edge}"/>`
@@ -191,5 +191,5 @@ export async function exportSvg(d:Card,o:Off={}){
  const r=g.root
  s+=`<rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" rx="12" fill="${c.ink}"/>`
  s+=`<text font-size="13" font-weight="600" text-anchor="middle" fill="${c.on}">${r.l.map((l,k)=>`<tspan x="${r.x+r.w/2}" y="${r.y+10+k*16+12}">${esc(l)}</tspan>`).join('')}</text></g></svg>`
- save(new Blob([s],{type:'image/svg+xml'}),`carte-q${d.id}.svg`)
+ save(new Blob([s],{type:'image/svg+xml'}),`carte-q${d.id%1000}.svg`)
 }
