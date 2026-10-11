@@ -33,12 +33,12 @@ function Deck({d,p,onAct,onFav,onMap}:{d:Card;p:Prog;onAct:(a:A)=>void;onFav:()=
      <path fill="var(--fill)" stroke="var(--edge)" strokeWidth="2" d="M-48 8C-52-22-30-38-12-34C0-46 28-44 34-26C54-24 58 4 46 18C40 36-40 36-48 8Z"/>
      <circle cx="-14" cy="-6" r="5" fill="var(--t)"/><circle cx="14" cy="-6" r="5" fill="var(--t)"/>
      <path d="M-12 6Q0 20 12 6" fill="none" stroke="var(--t)" strokeWidth="4" strokeLinecap="round"/></motion.svg>
-    <div className="meta">Q{d.id} · {d.it.length} éléments</div><h2>{d.q}</h2>
+    <div className="meta">Q{d.id%1000} · {d.it.length} éléments</div><h2>{d.q}</h2>
     <div className="chips">{st==='n'&&<span>à revoir</span>}{st==='d'&&<span>doute</span>}{fav&&<span>favori</span>}</div>
     <div className="hint">Touche pour retourner · glisse pour noter</div>
    </div>
    <div className="face back">
-    <div className="hd" onPointerDown={e=>ctl.start(e)}><div className="meta">Q{d.id}</div><h3>{d.q}</h3></div>
+    <div className="hd" onPointerDown={e=>ctl.start(e)}><div className="meta">Q{d.id%1000}</div><h3>{d.q}</h3></div>
     <div className="bd"><div className="tools"><button className="sw" onClick={()=>setMap(!map)}>{map?'Liste':'Carte mentale'}</button>{map&&<button className="sw" onClick={onMap}><Icon n="fit" s={16}/>Agrandir &amp; exporter</button>}</div>
      {map?<button className="mm-open" onClick={onMap} aria-label="Agrandir la carte mentale"><MindMap d={d}/></button>:<ul>{d.it.map((t,i)=><motion.li key={i} initial={{opacity:0,x:16}} animate={{opacity:flip?1:0,x:0}} transition={{delay:.25+i*.05}}>{t}</motion.li>)}</ul>}</div>
     <button className="fl" onClick={()=>setFlip(false)} aria-label="Retourner"><Icon n="flip" s={18}/></button>
@@ -51,18 +51,24 @@ function Deck({d,p,onAct,onFav,onMap}:{d:Card;p:Prog;onAct:(a:A)=>void;onFav:()=
   <button className="main" onClick={()=>fly('k')}>Retenu</button></div></>
 }
 
-export default function Study({cards,p,setP,onHome}:{cards:Card[];p:Prog;setP:(f:(p:Prog)=>Prog)=>void;onHome:()=>void}){
+export default function Study({cards:all,p,setP,onHome}:{cards:Card[];p:Prog;setP:(f:(p:Prog)=>Prog)=>void;onHome:()=>void}){
+ const groups=[...new Set(all.map(c=>c.grp).filter(Boolean))] as string[]
+ const [g,setG]=useState(groups[0]||'')
+ const cards=g?all.filter(c=>c.grp===g):all
  const [f,setF]=useState<F>('all'),[mm,setMm]=useState<Card|null>(null)
  useBackLayer(!!mm,()=>setMm(null))
- const build=(m:F)=>cards.filter(d=>m==='fav'?p.fav[d.id]:m==='rev'?'nd'.includes(p.st[d.id]||'-'):p.st[d.id]!=='k').map(d=>d.id)
+
+ const build=(m:F,cs=cards)=>cs.filter(d=>m==='fav'?p.fav[d.id]:m==='rev'?'nd'.includes(p.st[d.id]||'-'):p.st[d.id]!=='k').map(d=>d.id)
  const [Q,setQ]=useState<number[]>(()=>build('all'))
  const pick=(m:F)=>{setF(m);setQ(build(m))}
+ const pickG=(x:string)=>{setG(x);setF('all');setQ(build('all',all.filter(c=>c.grp===x)))}
  const act=(a:A)=>{const id=Q[0];setP(s=>({...s,st:{...s.st,[id]:a}}))
   setQ(q=>{const r=q.slice(1);if(a==='n')r.splice(Math.min(3,r.length),0,id);if(a==='d')r.splice(Math.min(8,r.length),0,id);return r})}
  const fav=()=>setP(s=>({...s,fav:{...s.fav,[Q[0]]:!s.fav[Q[0]]}}))
  const d=Q.length?cards.find(c=>c.id===Q[0])!:null
  const known=cards.filter(c=>p.st[c.id]==='k').length
  return <div className="study">
+  {groups.length>1&&<div className="sp" role="tablist" aria-label="Parties du module" style={{marginBottom:12}}>{groups.map(x=><button key={x} role="tab" aria-selected={g===x} className={g===x?'on':''} onClick={()=>pickG(x)}>{x} · {all.filter(c=>c.grp===x).length}</button>)}</div>}
   <div className="seg">{([['all','À réviser'],['rev','À revoir'],['fav','Favoris']] as [F,string][]).map(([k,l])=>
    <button key={k} className={f===k?'on':''} onClick={()=>pick(k)}>{f===k&&<motion.i layoutId="seg"/>}<span>{l}</span></button>)}</div>
   <div className="st">{known}/{cards.length} retenues · {Q.length} dans la pile</div>
