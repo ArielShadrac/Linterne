@@ -3,7 +3,6 @@ import {AnimatePresence,motion} from 'framer-motion'
 import {MODULES,Module} from './data'
 import Study from './Study'
 import {Icon,Tilt} from './ui'
-import Splash3D from './Splash3D'
 import Calc from './Calc'
 import Vitals from './Vitals'
 import {useBackLayer} from './nav'
@@ -16,17 +15,36 @@ function useLS<T>(k:string,i:T){const[v,s]=useState<T>(()=>{try{const r=localSto
  useEffect(()=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}},[k,v]);return[v,s] as const}
 const ROLES:Role[]=['Interne','Résident','Étudiant']
 
+const SP_IMG='landing1.jpg'
+// ↑ Remplace cette URL par ton image médicale une fois prête
+
 function Splash({first,onDone}:{first:boolean;onDone:()=>void}){
  useEffect(()=>{if(!first){const t=setTimeout(onDone,1300);return()=>clearTimeout(t)}},[first,onDone])
- return <motion.div className="splash" exit={{opacity:0}}>
-  <motion.div className="logo3d" initial={{scale:.85,opacity:0}} animate={{scale:1,opacity:1}} transition={{duration:.5}}>
-   <Splash3D/><span>L</span></motion.div>
-  <motion.h1 initial={{y:16,opacity:0}} animate={{y:0,opacity:1}} transition={{delay:.4}}>l'interne</motion.h1>
-  <motion.p initial={{opacity:0}} animate={{opacity:1}} transition={{delay:.7}}>Ta révision médicale,<br/>fluide comme un swipe.</motion.p>
-  <motion.small className="by" initial={{opacity:0}} animate={{opacity:1}} transition={{delay:.9}}>Un projet {BRAND.name}</motion.small>
-  {first&&<motion.button className="cta" onClick={onDone} initial={{y:20,opacity:0}} animate={{y:0,opacity:1}} transition={{delay:1}}>Commencer</motion.button>}
+ return <motion.div className="splash" exit={{opacity:0,transition:{duration:.6}}}>
+  {/* Image plein écran */}
+  <motion.img className="sp-bg" src={SP_IMG} alt="" aria-hidden="true"
+   initial={{scale:1.08,opacity:0}} animate={{scale:1,opacity:.72}} transition={{duration:1.4,ease:'easeOut'}}/>
+  {/* Grain de film premium */}
+  <div className="sp-grain" aria-hidden="true"/>
+  {/* Réseau 3D en haut à gauche */}
+
+  {/* Contenu texte en bas */}
+  <div className="sp-content">
+
+   <motion.h1 className="sp-h1" initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:.65,ease:[.16,1,.3,1]}}>
+    l'interne
+   </motion.h1>
+   <motion.p className="sp-tag" initial={{opacity:0,y:16}} animate={{opacity:1,y:0}} transition={{delay:.78}}>
+    Ta révision médicale, fluide comme un swipe.
+   </motion.p>
+   <motion.div className="sp-ctas" initial={{opacity:0,y:14}} animate={{opacity:1,y:0}} transition={{delay:.92}}>
+   <button className="cta sec" onClick={onDone}>Commencer</button>
+   </motion.div>
+ 
+  </div>
  </motion.div>
 }
+
 
 function Onboard({onSave}:{onSave:(p:Profile)=>void}){
  const [name,setName]=useState(''),[role,setRole]=useState<Role>('Étudiant')
