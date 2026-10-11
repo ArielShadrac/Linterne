@@ -3,7 +3,7 @@ export const BRAND={
     name:'Xcept-Health',
     tag:'Tout commence par une exception',
     /** Site web de l'organisation : remplace par son adresse. Tant que c'est vide, la marque ouvre le GitHub. */
-    site:'https://www.Xcept-Health.comm',
+    site:'https://www.Xcept-Health.com',
     github:'https://github.com/Xcept-Health',
     huggingface:'https://huggingface.co/Xcept-Health'}
    /** Page ouverte au clic sur la marque */
