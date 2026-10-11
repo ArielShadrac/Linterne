@@ -182,6 +182,117 @@ function PP(){
    :<Empty t="Ajoute la taille et le terme actuel pour comparer aux recommandations."/>}</>}
  </div>}
 
+/* ====== Pédiatrie ====== */
+function TailleCible(){
+ const[pf,setPf]=useState(''),[pm,setPm]=useState(''),[sx,setSx]=useState<'m'|'f'>('m')
+ const tf=C.num(pf),tm=C.num(pm),ok=tf>0&&tm>0
+ const cible=ok?(sx==='m'?(tf+tm+13)/2:(tf+tm-13)/2):NaN
+ const lo=cible-8.5,hi=cible+8.5
+ const odd=ok&&(tf<100||tf>230||tm<100||tm>230)
+ return <div className="frm">
+  <Pills v={sx} on={setSx} o={[['m','Garçon'],['f','Fille']]}/>
+  <Num l="Taille du père" u="cm" v={pf} on={setPf} ph="ex. 175" sl={{min:140,max:215,step:.5,def:175}}/>
+  <Num l="Taille de la mère" u="cm" v={pm} on={setPm} ph="ex. 162" sl={{min:130,max:200,step:.5,def:162}}/>
+  {!ok?<Empty t="Saisis la taille des deux parents pour calculer la taille cible."/>
+  :<>{odd&&<Verdict tone="wa" t="Taille inhabituelle : vérifie la saisie."/>}
+   <Res k="Taille cible génétique" big={C.fx(cible)} unit="cm"/>
+   <Res k="Fourchette cible" big={`${C.fx(lo)} – ${C.fx(hi)}`} unit="cm" line="± 8,5 cm (≈ ± 1 DS, méthode Tanner)"/>
+   <KV rows={[['Correction appliquée',sx==='m'?'+ 13 cm (garçon)':'− 13 cm (fille)'],['Formule',sx==='m'?`(${C.fx(tf)} + ${C.fx(tm)} + 13) ÷ 2`:`(${C.fx(tf)} + ${C.fx(tm)} − 13) ÷ 2`]]}/></>}
+ </div>}
+
+function PoidsEnfant(){
+ const[a,setA]=useState(''),[u,setU]=useState<'ans'|'mois'>('ans')
+ const age=C.num(a),ok=Number.isFinite(age)&&age>=0
+ const apls=u==='ans'?((age+4)*2):((age+9)/2)
+ const lo=u==='ans'?(age*3)+7:NaN
+ const ok1=ok&&u==='ans'&&age>=1&&age<=10
+ const ok0=ok&&u==='mois'&&age>=0&&age<12
+ const valid=ok1||ok0
+ const oddA=ok&&u==='ans'&&(age<1||age>10)
+ const oddM=ok&&u==='mois'&&(age<0||age>=12)
+ return <div className="frm">
+  <Pills v={u} on={setU} o={[['ans','Années (1–10 ans)'],['mois','Mois (0–11 mois)']]}/>
+  <Num l={u==='ans'?'Âge en années':'Âge en mois'} u={u} v={a} on={setA} ph={u==='ans'?'ex. 3':'ex. 6'}
+   sl={u==='ans'?{min:1,max:10,step:1,def:5}:{min:0,max:11,step:1,def:6}}/>
+  {(oddA||oddM)&&<Verdict tone="wa" t={u==='ans'?'Formule APLS valable de 1 à 10 ans.':'Formule valable de 0 à 11 mois.'}/>}
+  {!valid?<Empty t="Saisis un âge valide pour estimer le poids."/>
+  :<><Res k={u==='ans'?'Poids estimé (APLS)':'Poids estimé (APLS)'}
+      big={C.fx(apls,1)} unit="kg" line={u==='ans'?`Formule : (${C.fx(age,0)} + 4) × 2`:`Formule : (${C.fx(age,0)} + 9) ÷ 2`}/>
+   {ok1&&<Res k="Poids estimé (Luscombe-Owens)" big={C.fx(lo,1)} unit="kg" line={`Formule : (${C.fx(age,0)} × 3) + 7`}/>}
+   {ok1&&<KV rows={[['Écart entre les deux formules',`${C.fx(Math.abs(apls-lo),1)} kg`],['À retenir','Peser l\'enfant dès que possible']]}/>}
+   <Verdict tone="in" t="Estimation : à confirmer par le poids réel">Ces formules donnent un poids moyen. Ajuste les doses au poids mesuré dès que possible.</Verdict></>}
+ </div>}
+
+const SV_ITEMS=[
+ {k:'Geignement expiratoire',o:['Absent','Audible au stéthoscope','Audible à l\'oreille']},
+ {k:'Battement des ailes du nez (BAN)',o:['Absent','Modéré','Intense']},
+ {k:'Tirage intercostal',o:['Absent','Modéré','Intense']},
+ {k:'Entonnoir xiphoïdien',o:['Absent','Modéré','Intense']},
+ {k:'Balancement thoraco-abdominal',o:['Respiration synchrone','Minime','Bascule franche']}]
+function Silverman(){
+ const[s,setS]=useState<(number|null)[]>([null,null,null,null,null])
+ const T=tot(s)
+ return <div className="frm">
+  {SV_ITEMS.map((c,i)=><Choice key={c.k} l={c.k} o={c.o.map((x,p)=>({p,t:x}))} v={s[i]} on={p=>setS(a=>a.map((x,k)=>k===i?p:x))}/>)}
+  {T==null?<Empty t="Cote les 5 signes pour obtenir le score de Silverman."/>
+  :<><Res k="Score de Silverman" big={String(T)} unit="/ 10"/>
+   <Scale min={-.5} max={10.5} v={T} seg={[{to:0.5,t:'ok',l:'0'},{to:2.5,t:'in',l:'1–2'},{to:4.5,t:'wa',l:'3–4'},{to:10.5,t:'ko',l:'≥ 5'}]}/>
+   <Verdict tone={T===0?'ok':T<=2?'in':T<=4?'wa':'ko'} t={T===0?'Pas de détresse respiratoire':T<=2?'Détresse légère':T<=4?'Détresse modérée':'Détresse sévère'}>
+    {T===0?'Surveillance normale.':T<=2?'Oxygène selon la SpO₂, surveillance rapprochée.':T<=4?'Oxygène, envisager une CPAP, réévaluation fréquente.':'Prise en charge urgente, ventilation assistée à discuter selon le protocole.'}
+   </Verdict></>}
+  <Reset on={()=>setS([null,null,null,null,null])}/>
+ </div>}
+
+function ApgarPedia(){
+ const[sc,setSc]=useState(blank),[t,setT]=useState<Tm>('1')
+ const set=(i:number,p:number)=>setSc(s=>({...s,[t]:s[t].map((x,k)=>k===i?p:x)}))
+ const T=tot(sc[t]),lab=(k:Tm)=>{const v=tot(sc[k]);return`${k} min · ${v==null?'—':v}`}
+ return <div className="frm">
+  <Pills v={t} on={setT} o={(['1','5','10'] as Tm[]).map(k=>[k,lab(k)] as [Tm,string])}/>
+  {AP.map((c,i)=><Choice key={c.k} l={c.k} v={sc[t][i]} on={p=>set(i,p)} o={c.o.map((x,p)=>({p,t:x}))}/>)}
+  {T==null?<Empty t={`Note les 5 critères pour obtenir le score à ${t} min.`}/>
+  :<><Res k={`Apgar à ${t} min`} big={String(T)} unit="/ 10"/>
+   <Scale min={-.5} max={10.5} v={T} seg={[{to:3.5,t:'ko',l:'0–3'},{to:6.5,t:'wa',l:'4–6'},{to:10.5,t:'ok',l:'7–10'}]}/>
+   <Verdict tone={T>=7?'ok':T>=4?'wa':'ko'} t={T>=7?'Bonne adaptation':T>=4?'Dépression modérée':'Dépression sévère'}>{T>=7?'Surveillance et soins de routine.':T>=4?'Stimulation, surveillance rapprochée, soutien selon la clinique.':'Réanimation néonatale selon le protocole, sans attendre le score.'}</Verdict></>}
+  <Reset on={()=>setSc(blank())}/>
+ </div>}
+
+function AgeCorrige(){
+ const[acm,setAcm]=useState(''),[acj,setAcj]=useState('0'),[ag,setAg]=useState('')
+ const chronoM=C.num(acm),chronoJ=Number.isFinite(C.num(acj))?C.num(acj):0
+ const agSA=C.num(ag)
+ const ok=Number.isFinite(chronoM)&&chronoM>=0&&Number.isFinite(agSA)&&agSA>=22&&agSA<40
+ const premSA=ok?40-agSA:NaN
+ const premMois=premSA/4.33
+ const corrigeM=ok?chronoM+chronoJ/30.44-premMois:NaN
+ const corrigeW=ok?(chronoM*4.33+chronoJ/7)-premSA:NaN
+ const odd=ok&&agSA<24
+ return <div className="frm">
+  <Num l="Âge gestationnel à la naissance" u="SA" v={ag} on={setAg} ph="ex. 28" sl={{min:22,max:39,step:1,def:32}}/>
+  <div className="row2"><Num l="Âge chronologique" u="mois" v={acm} on={setAcm} ph="ex. 4"/><Num l="+ jours" u="j" v={acj} on={setAcj}/></div>
+  {!ok?<Empty t="Saisis l'AG à la naissance et l'âge chronologique de l'enfant."/>
+  :<>{odd&&<Verdict tone="wa" t="Grande prématurité (< 28 SA) : interprétation avec spécialiste recommandée."/>}
+   <Res k="Âge corrigé" big={corrigeM>=0?`${C.fx(corrigeM,1)} mois`:'Avant terme'} line={corrigeM>=0?`≈ ${Math.max(0,Math.floor(corrigeW/4))} sem ${Math.max(0,Math.round(corrigeW%4*7/4))} j`:'Toujours dans la période néonatale'}/>
+   <KV rows={[['Semaines de prématurité',`${C.fx(premSA,0)} SA (${C.fx(premMois,1)} mois)`],['Âge chronologique',`${C.fx(chronoM,0)} mois ${chronoJ>0?`+ ${chronoJ} j`:''}`],['Correction à appliquer',`${corrigeM>=0?'':'⚠ '}−${C.fx(premMois,1)} mois`],['Utiliser jusqu\'à',corrigeM<24?'2–3 ans (croissance + développement)':'⚠ 2–3 ans recommandés — vérifier si toujours applicable']]}/></>}
+ </div>}
+
+function PertePoids(){
+ const[p0,setP0]=useState(''),[p1,setP1]=useState('')
+ const pa=C.num(p0),pc=C.num(p1),ok=pa>0&&pc>0&&pc<=pa
+ const pct=ok?(pa-pc)/pa*100:NaN
+ const neg=C.num(p0)>0&&C.num(p1)>C.num(p0)
+ return <div className="frm">
+  <Num l="Poids antérieur (référence)" u="g ou kg" v={p0} on={setP0} ph="ex. 3500 ou 3.5"/>
+  <Num l="Poids actuel" u="même unité" v={p1} on={setP1} ph="ex. 3200 ou 3.2"/>
+  {neg&&<Verdict tone="in" t="Le poids actuel dépasse le poids de référence → pas de perte de poids."/>}
+  {!ok&&!neg?<Empty t="Saisis le poids de référence et le poids actuel pour calculer la perte."/>
+  :ok?<><Res k="Perte de poids" big={C.fx(pct)} unit="%" line={`${C.fx(pa-pc)} unités perdues sur ${C.fx(pa)}`}/>
+   <Scale min={0} max={12} v={pct} seg={[{to:5,t:'ok',l:'< 5 %'},{to:10,t:'wa',l:'5–9 %'},{to:12,t:'ko',l:'≥ 10 %'}]}/>
+   <Verdict tone={pct<5?'ok':pct<10?'wa':'ko'} t={pct<5?'Déshydratation légère':pct<10?'Déshydratation modérée':'Déshydratation sévère'}>
+    {pct<5?'Surveillance, réhydratation orale si tolérance.':pct<10?'Réhydratation orale rapide ; réévaluer. Chez le nouveau-né > 5 % : bilan de lactation.':'Urgence vitale : réanimation hydroélectrolytique, hospitalisation.'}
+   </Verdict></>:null}
+ </div>}
+
 type Md='saj'|'j'|'m'
 function Conv(){
  const[md,setMd]=useState<Md>('saj'),[base,setBase]=useState<'SA'|'SG'>('SA'),[mt,setMt]=useState<'civ'|'lun'>('civ')
@@ -207,7 +318,7 @@ function Conv(){
    <KV rows={[['Semaines de grossesse (SG)',D>=14?C.saj(D-14,'SG'):'moins de 2 SG'],[`Mois (${mt==='civ'?'civils':'lunaires'}, base ${base})`,Number.isFinite(mo)&&mo>=0?`${C.fx(mo)} mois`:'—'],['Mois révolus',Number.isFinite(mo)&&mo>=0?`${Math.floor(mo)} (en cours : ${Math.floor(mo)+1}e mois)`:'—'],['Trimestre',C.tri(D)]]}/></>}
  </div>}
 
-const FORMS:Record<string,()=>JSX.Element>={ga:GA,dpa:DPA,imc:IMC,apgar:Apgar,bishop:Bishop,choc:Choc,pp:PP,conv:Conv}
+const FORMS:Record<string,()=>JSX.Element>={ga:GA,dpa:DPA,imc:IMC,apgar:Apgar,bishop:Bishop,choc:Choc,pp:PP,conv:Conv,'taille-cible':TailleCible,'poids-enfant':PoidsEnfant,silverman:Silverman,'apgar-pedia':ApgarPedia,'age-corrige':AgeCorrige,'perte-poids':PertePoids}
 
 /* ====== Explications ====== */
 export function Learn({doc}:{doc:Doc}){
