@@ -117,5 +117,54 @@ export const CALCS:CalcDef[]=[
  read:[['40 SA','280 j · ≈ 9,2 mois civils · 10 mois lunaires','in'],['20 SA','140 j · ≈ 4,6 mois civils · 5 mois lunaires','in'],['9 mois civils','≈ 274 j ≈ 39 SA + 1 j','in']],
  ex:'28 SA + 3 j = 199 jours ≈ 6,5 mois civils (base aménorrhée).',
  limits:['Aucune convention universelle : toujours préciser SA ou SG, et le type de mois.','En clinique, raisonner en SA + jours ; les mois servent à la communication avec la patiente.'],
- refs:['Convention de calcul, sans recommandation officielle : les sociétés savantes expriment l\'âge gestationnel en SA et en jours.']}}
+ refs:['Convention de calcul, sans recommandation officielle : les sociétés savantes expriment l\'âge gestationnel en SA et en jours.']}},
+
+/* ========== PÉDIATRIE ========== */
+{id:'taille-cible',spec:'pedia',code:'TC',name:'Taille cible génétique',sub:'Taille parentale corrigée (Tanner) · fourchette ± 8,5 cm',doc:{
+ use:['Estimer la taille adulte attendue d\'un enfant à partir des tailles parentales.','Situer la courbe de croissance de l\'enfant par rapport à son potentiel génétique familial.'],
+ eq:['Garçon : taille cible = (taille père + taille mère + 13) ÷ 2','Fille   : taille cible = (taille père + taille mère − 13) ÷ 2','Fourchette cible = taille cible ± 8,5 cm (≈ ± 1 DS)'],
+ vars:['13 cm : écart de taille moyen entre hommes et femmes.','La fourchette ± 8,5 cm couvre environ 68 % de la population (± 1 DS).'],
+ read:[['Dans la fourchette','Croissance concordante avec le potentiel génétique','ok'],['Au-dessus de la fourchette','Croissance supérieure au potentiel : vérifier si la courbe reste parallèle aux percentiles','in'],['En dessous de la fourchette','Croissance insuffisante par rapport au potentiel : bilan à envisager','ko']],
+ ex:'Père 175 cm, mère 162 cm, garçon → (175 + 162 + 13) ÷ 2 = 175 cm ; fourchette 166,5 – 183,5 cm.',
+ limits:['Valable uniquement pour des parents biologiques dont la taille est connue avec précision.','Ne tient pas compte de la nutrition, d\'une puberté précoce ou tardive, ni des maladies chroniques.','Toujours interpréter sur la courbe de croissance en percentiles, et non de façon isolée.'],
+ refs:['Tanner JM, Goldstein H, Whitehouse RH. Standards for children\'s height at ages 2-9 years allowing for height of parents. Arch Dis Child 1970;45:755-762.']}},
+{id:'poids-enfant',spec:'pedia',code:'PE',name:'Poids estimé de l\'enfant',sub:'Formules APLS et Luscombe-Owens selon l\'âge',doc:{
+ use:['Estimer rapidement le poids d\'un enfant en urgence quand il ne peut pas être pesé.','Calculer les doses de médicaments, les volumes de réanimation et les paramètres ventilatoires.'],
+ eq:['APLS (1–10 ans) : poids (kg) = (âge en années + 4) × 2','APLS (< 1 an) : poids (kg) = (âge en mois + 9) ÷ 2','Luscombe-Owens (1–10 ans) : poids (kg) = (âge en années × 3) + 7'],
+ vars:['Âge en années entières pour APLS et Luscombe-Owens.','Ces formules donnent un poids moyen : la variabilité individuelle peut être importante.'],
+ read:[['Résultat obtenu','Estimation à utiliser comme point de départ : peser l\'enfant dès que possible','in'],['Enfant normopondéral','Les deux formules concordent généralement à ± 1–2 kg','ok'],['Obésité ou maigreur','Risque de surestimation ou sous-estimation importante : ajuster les doses au poids réel','wa']],
+ ex:'Enfant de 3 ans — APLS : (3 + 4) × 2 = 14 kg ; Luscombe-Owens : (3 × 3) + 7 = 16 kg.',
+ limits:['Formules non applicables aux nouveau-nés (< 1 mois) ni aux enfants de plus de 10 ans sans adaptation.','Chez l\'enfant en surpoids ou obèse, utiliser le poids idéal pour le calcul des doses médicamenteuses.','Toujours peser l\'enfant dès que possible et recalculer les doses.'],
+ refs:['Advanced Paediatric Life Support (APLS). BMJ Books, 5e éd. 2011.','Luscombe MD, Owens BD. Weight estimation in resuscitation: is the current formula still valid? Arch Dis Child 2007;92:412-415.']}},
+{id:'silverman',spec:'pedia',code:'SV',name:'Score de Silverman',sub:'Détresse respiratoire du nouveau-né — 5 signes de lutte (0–10)',doc:{
+ use:['Évaluer la sévérité de la détresse respiratoire d\'un nouveau-né.','Guider la prise en charge : surveillance, oxygène, CPAP ou ventilation mécanique.','Suivre l\'évolution sous traitement.'],
+ eq:['Score = geignement + battement des ailes du nez + tirage intercostal + entonnoir xiphoïdien + balancement thoraco-abdominal','Chaque item : 0 = absent, 1 = modéré, 2 = maximal → total 0–10'],
+ vars:['0 : absence du signe.','1 : signe modéré, intermittent.','2 : signe permanent ou intense.'],
+ read:[['0','Pas de détresse respiratoire','ok'],['1 – 2','Détresse légère : surveillance, oxygène selon SpO₂','in'],['3 – 4','Détresse modérée : oxygène, CPAP à envisager, réévaluation rapprochée','wa'],['≥ 5','Détresse sévère : prise en charge urgente, ventilation assistée à discuter','ko']],
+ ex:'Geignement 1 + BAN 2 + tirage 1 + entonnoir xiphoïdien 0 + balancement 1 = 5 → détresse sévère.',
+ limits:['Score subjectif : variabilité inter-examinateurs, en particulier pour le geignement et le balancement.','Toujours compléter par la SpO₂, la fréquence respiratoire, la gazométrie et la radiographie thoracique.','N\'oriente pas sur l\'étiologie (MMH, TTN, pneumonie, pneumothorax…).','Certains services utilisent une version simplifiée à 3 critères : se référer au protocole local.'],
+ refs:['Silverman WA, Andersen DH. A controlled clinical trial of effects of water mist on obstructive respiratory signs, death rate and necropsy findings among premature infants. Pediatrics 1956;17:1-10.']}},
+{id:'apgar-pedia',spec:'pedia',code:'AP',name:'Score d\'Apgar',sub:'Cinq critères notés de 0 à 2, à 1, 5 et 10 minutes',doc:{
+ use:['Résumer l\'adaptation du nouveau-né à la vie extra-utérine.','Suivre l\'évolution entre 1, 5 et 10 minutes de vie et transmettre le score dans le dossier pédiatrique.'],
+ eq:['Apgar = FC + respiration + tonus + réactivité + coloration','Chaque critère vaut 0, 1 ou 2 → total sur 10','À noter à 1, 5 et 10 minutes de vie'],
+ read:[['7 – 10','Bonne adaptation à la vie extra-utérine','ok'],['4 – 6','Dépression modérée : stimulation, surveillance rapprochée, soutien selon la clinique','wa'],['0 – 3','Dépression sévère : réanimation néonatale en cours selon protocole','ko']],
+ ex:'FC 120 (2) + cri vigoureux (2) + mouvements actifs (2) + grimace (1) + corps rose, extrémités bleues (1) = 8.',
+ limits:['Ne sert pas à décider de réanimer : la réanimation commence sans attendre le score à 1 min si nécessaire.','Un score bas à 1 min est peu prédictif seul ; l\'évolution à 5 et 10 min est plus informative.','Dépend de l\'examinateur, de la prématurité et des médicaments reçus par la mère.'],
+ refs:['Apgar V. A proposal for a new method of evaluation of the newborn infant. Curr Res Anesth Analg 1953.','AAP / ACOG. The Apgar score. Pediatrics 2015.']}},
+{id:'age-corrige',spec:'pedia',code:'AC',name:'Âge corrigé du prématuré',sub:'Âge chronologique − semaines de prématurité',doc:{
+ use:['Corriger l\'âge d\'un prématuré pour interpréter sa croissance et ses acquisitions psychomotrices.','Comparer les paramètres de croissance aux courbes adaptées jusqu\'à 2–3 ans.'],
+ eq:['Âge corrigé (semaines) = âge chronologique (sem.) − (40 − AG naissance en SA)','Âge corrigé (mois) = âge chronologique (mois) − semaines de prématurité ÷ 4,33','Semaines de prématurité = 40 − AG à la naissance (SA)'],
+ vars:['AG : âge gestationnel à la naissance en semaines d\'aménorrhée.','40 SA : terme théorique de référence.'],
+ read:[['Âge corrigé ≥ 0','Âge à utiliser pour les courbes de croissance et les bilans de développement','ok'],['Âge corrigé < 0','L\'enfant n\'a pas encore atteint le terme théorique : courbes de prématurité à utiliser','in']],
+ ex:'Né à 28 SA, âgé de 4 mois : prématurité = 12 SA = 12 ÷ 4,33 ≈ 2,8 mois → âge corrigé ≈ 4 − 2,8 = 1,2 mois.',
+ limits:['Correction recommandée jusqu\'à 2 ans pour la croissance et jusqu\'à 3 ans pour le développement psychomoteur (recommandations françaises).','L\'âge chronologique reste utilisé pour le calendrier vaccinal.','Pour les très grands prématurés, la correction reste utile au-delà de 2 ans pour certaines acquisitions langagières.'],
+ refs:['Comité de Nutrition, SFP. Suivi de la croissance du prématuré. Arch Pédiatr 2004.','Aguilar-Rodríguez M et al. Corrected versus chronological age: current practices in premature child follow-up. J Pediatr 2020.']}},
+{id:'perte-poids',spec:'pedia',code:'PD',name:'% de perte de poids',sub:'(poids antérieur − poids actuel) ÷ poids antérieur × 100',doc:{
+ use:['Estimer le degré de déshydratation aiguë chez le nourrisson ou l\'enfant.','Repérer une dénutrition en comparant le poids actuel au poids habituel.'],
+ eq:['Perte de poids (%) = (poids antérieur − poids actuel) ÷ poids antérieur × 100'],
+ vars:['Poids antérieur : poids de naissance (nourrisson) ou poids habituel récent.','Poids actuel : poids mesuré à la consultation.'],
+ read:[['< 5 %','Déshydratation légère : soif, légère sécheresse des muqueuses','ok'],['5 – 9 %','Déshydratation modérée : yeux cernés, fontanelle déprimée, pli cutané présent','wa'],['≥ 10 %','Déshydratation sévère : choc circulatoire, urgence vitale','ko']],
+ ex:'Nourrisson né à 3 500 g, pesé à 3 200 g à J3 → (3 500 − 3 200) ÷ 3 500 × 100 = 8,6 % → surveillance rapprochée.',
+ limits:['Chez le nouveau-né, une perte de 5–7 % dans les 5 premiers jours est physiologique ; au-delà ou persistant après J5, bilan de lactation et renutrition à initier.','La qualité du résultat dépend de la fiabilité du poids de référence.','Toujours combiner avec les signes cliniques pour guider la voie de réhydratation (orale ou IV).'],
+ refs:['Société Française de Pédiatrie. Prise en charge de la gastro-entérite aiguë chez l\'enfant. Recommandations, 2002.','Nager AL, Wang VJ. Comparison of nasogastric and intravenous methods of rehydration in pediatric patients with acute dehydration. Pediatrics 2002;109:566-572.']}}
 ]
