@@ -1,68 +1,220 @@
-import {useEffect,useState,useCallback} from 'react'
 
-/** Enregistre le service worker (production seulement) et demande à protéger les données locales de l'effacement automatique. */
-export function registerSW(){
- const prod=(import.meta as unknown as {env?:{PROD?:boolean}}).env?.PROD
- if(!prod||!('serviceWorker' in navigator))return
- addEventListener('load',()=>{
-  navigator.serviceWorker.register('./sw.js').catch(()=>{})
-  try{navigator.storage?.persist?.()}catch{}})}
+import { useEffect, useState, useCallback } from 'react'
 
-/** true si l'appareil a du réseau (indicatif : « connecté » ne garantit pas que le réseau fonctionne). */
-export function useOnline(){
- const [on,setOn]=useState(()=>navigator.onLine)
- useEffect(()=>{
-  const u=()=>setOn(true),d=()=>setOn(false)
-  addEventListener('online',u);addEventListener('offline',d)
-  return()=>{removeEventListener('online',u);removeEventListener('offline',d)}},[]
- )
- return on}
+/**
+ * Enregistre le service worker en production.
+ * Demande au navigateur de conserver les données locales si possible.
+ */
+export function registerSW() {
+  const prod = (import.meta as unknown as {
+    env?: { PROD?: boolean }
+  }).env?.PROD
 
-interface BIP extends Event{prompt():Promise<void>}
-/** Installation sur l'écran d'accueil. `can` = le navigateur propose l'installation ; `done` = déjà installée. */
-export function useInstall(){
- const [ev,setEv]=useState<BIP|null>(null)
- const [done,setDone]=useState(()=>matchMedia('(display-mode: standalone)').matches)
- useEffect(()=>{
-  const a=(e:Event)=>{e.preventDefault();setEv(e as BIP)}
-  const b=()=>{setDone(true);setEv(null)}
-  addEventListener('beforeinstallprompt',a);addEventListener('appinstalled',b)
-  return()=>{removeEventListener('beforeinstallprompt',a);removeEventListener('appinstalled',b)}},[])
- return {can:!!ev&&!done,done,install:async()=>{if(!ev)return;await ev.prompt();setEv(null)}}}
+  if (!prod || !('serviceWorker' in navigator)) return
 
-/** Persiste/récupère une valeur JSON dans le cache du service worker.
- *  Fonctionne même hors ligne : les données survivent à un rechargement de page.
- *  Usage : const {save, load, saving} = useSWData() */
-export function useSWData(){
- const [saving,setSaving]=useState(false)
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {})
 
- const save=useCallback(async(key:string,value:unknown):Promise<boolean>=>{
-  if(!('serviceWorker' in navigator))return false
-  const sw=await navigator.serviceWorker.ready.catch(()=>null)
-  if(!sw?.active)return false
-  return new Promise(resolve=>{
-   setSaving(true)
-   const handler=(e:MessageEvent)=>{
-    if(e.data?.type==='CACHE_DATA_OK'&&e.data.key===key){
-     navigator.serviceWorker.removeEventListener('message',handler)
-     setSaving(false);resolve(true)}}
-   navigator.serviceWorker.addEventListener('message',handler)
-   sw.active.postMessage({type:'CACHE_DATA',key,value})
-   setTimeout(()=>{navigator.serviceWorker.removeEventListener('message',handler);setSaving(false);resolve(false)},3000)
-  })},[])
+    try {
+      navigator.storage?.persist?.()
+    } catch {
+      // La persistance du stockage n'est pas disponible.
+    }
+  })
+}
 
- const load=useCallback(async<T=unknown>(key:string):Promise<T|null>=>{
-  if(!('serviceWorker' in navigator))return null
-  const sw=await navigator.serviceWorker.ready.catch(()=>null)
-  if(!sw?.active)return null
-  return new Promise(resolve=>{
-   const handler=(e:MessageEvent)=>{
-    if(e.data?.type==='GET_DATA_RESULT'&&e.data.key===key){
-     navigator.serviceWorker.removeEventListener('message',handler)
-     resolve(e.data.value as T)}}
-   navigator.serviceWorker.addEventListener('message',handler)
-   sw.active.postMessage({type:'GET_DATA',key})
-   setTimeout(()=>{navigator.serviceWorker.removeEventListener('message',handler);resolve(null)},2000)
-  })},[])
+/**
+ * Indique si l'appareil dispose d'une connexion réseau.
+ * Cela ne garantit pas que le réseau donne accès à Internet.
+ */
+export function useOnline() {
+  const [on, setOn] = useState(() => navigator.onLine)
 
- return {save,load,saving}}
+  useEffect(() => {
+    const handleOnline = () => setOn(true)
+    const handleOffline = () => setOn(false)
+
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+    }
+  }, [])
+
+  return on
+}
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt(): Promise<void>
+}
+
+/**
+ * Gère l'installation de l'application sur l'écran d'accueil.
+ * can : le navigateur propose l'installation.
+ * done : l'application est déjà installée.
+ */
+export function useInstall() {
+  const [ev, setEv] = useState<BeforeInstallPromptEvent | null>(null)
+
+  const [done, setDone] = useState(() =>
+    window.matchMedia('(display-mode: standalone)').matches
+  )
+
+  useEffect(() => {
+    const handleBeforeInstall = (event: Event) => {
+      event.preventDefault()
+      setEv(event as BeforeInstallPromptEvent)
+    }
+
+    const handleInstalled = () => {
+      setDone(true)
+      setEv(null)
+    }
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstall)
+    window.addEventListener('appinstalled', handleInstalled)
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstall)
+      window.removeEventListener('appinstalled', handleInstalled)
+    }
+  }, [])
+
+  const install = async () => {
+    if (!ev) return
+
+    await ev.prompt()
+    setEv(null)
+  }
+
+  return {
+    can: !!ev && !done,
+    done,
+    install,
+  }
+}
+
+/**
+ * Enregistre et récupère des valeurs JSON via le service worker.
+ * Permet de conserver des données locales entre les rechargements.
+ *
+ * Utilisation :
+ * const { save, load, saving } = useSWData()
+ */
+export function useSWData() {
+  const [saving, setSaving] = useState(false)
+
+  const save = useCallback(
+    async (key: string, value: unknown): Promise<boolean> => {
+      if (!('serviceWorker' in navigator)) return false
+
+      const registration = await navigator.serviceWorker.ready.catch(
+        () => null
+      )
+
+      if (!registration?.active) return false
+
+      const worker = registration.active
+
+      return new Promise<boolean>((resolve) => {
+        setSaving(true)
+
+        let finished = false
+        let timeoutId: ReturnType<typeof setTimeout>
+
+        const finish = (result: boolean) => {
+          if (finished) return
+          finished = true
+
+          clearTimeout(timeoutId)
+          navigator.serviceWorker.removeEventListener('message', handler)
+          setSaving(false)
+          resolve(result)
+        }
+
+        const handler = (event: MessageEvent) => {
+          if (
+            event.data?.type === 'CACHE_DATA_OK' &&
+            event.data.key === key
+          ) {
+            finish(true)
+          }
+        }
+
+        timeoutId = setTimeout(() => finish(false), 3000)
+
+        navigator.serviceWorker.addEventListener('message', handler)
+
+        try {
+          worker.postMessage({
+            type: 'CACHE_DATA',
+            key,
+            value,
+          })
+        } catch {
+          finish(false)
+        }
+      })
+    },
+    []
+  )
+
+  const load = useCallback(
+    async <T = unknown>(key: string): Promise<T | null> => {
+      if (!('serviceWorker' in navigator)) return null
+
+      const registration = await navigator.serviceWorker.ready.catch(
+        () => null
+      )
+
+      if (!registration?.active) return null
+
+      const worker = registration.active
+
+      return new Promise<T | null>((resolve) => {
+        let finished = false
+        let timeoutId: ReturnType<typeof setTimeout>
+
+        const finish = (value: T | null) => {
+          if (finished) return
+          finished = true
+
+          clearTimeout(timeoutId)
+          navigator.serviceWorker.removeEventListener('message', handler)
+          resolve(value)
+        }
+
+        const handler = (event: MessageEvent) => {
+          if (
+            event.data?.type === 'GET_DATA_RESULT' &&
+            event.data.key === key
+          ) {
+            finish((event.data.value ?? null) as T | null)
+          }
+        }
+
+        timeoutId = setTimeout(() => finish(null), 2000)
+
+        navigator.serviceWorker.addEventListener('message', handler)
+
+        try {
+          worker.postMessage({
+            type: 'GET_DATA',
+            key,
+          })
+        } catch {
+          finish(null)
+        }
+      })
+    },
+    []
+  )
+
+  return {
+    save,
+    load,
+    saving,
+  }
+}
