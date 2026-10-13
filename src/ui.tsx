@@ -19,6 +19,11 @@ const P:Record<string,string>={
  pulse:'M3 12h4l2-6 4 12 2-6h6',
  chev:'M9 5l7 7-7 7',
  del:'M21 5H9l-6 7 6 7h12zM12 9.5l5 5M17 9.5l-5 5',
+ search:'M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM20 20l-4-4',
+ layers:'M12 3l9 5-9 5-9-5zM3 13l9 5 9-5',
+ heart:'M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z',
+ hospital:'M4 21V7l8-4 8 4v14zM12 9v6M9 12h6',
+ clock:'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2',
  branch:'M5 12a2 2 0 1 0 4 0a2 2 0 1 0-4 0M15 5a2 2 0 1 0 4 0a2 2 0 1 0-4 0M15 19a2 2 0 1 0 4 0a2 2 0 1 0-4 0M8.8 11L15.2 6M8.8 13L15.2 18'}
 export const Icon=({n,s=22}:{n:string;s?:number})=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={P[n]}/></svg>
 
