@@ -4,7 +4,7 @@
  * - Polices et APIs publiques : stale-while-revalidate.
  * - DATA : cache dédié pour les données locales (scores récents, fiches mémo).
  * Pour forcer une purge complète, change le numéro de VERSION. */
-const VERSION='interne-v2'
+const VERSION='interne-v3'
 const SHELL=VERSION+'-shell'
 const RUN  =VERSION+'-run'
 const DATA =VERSION+'-data'
