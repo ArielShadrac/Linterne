@@ -199,10 +199,13 @@ Aider la mère à bien allaiter::Position : tête et corps de l'enfant dans le m
 const PEDIA_NQ=90
 // ids décalés de 1000 pour ne pas entrer en collision avec la progression des autres modules
 export const PEDIA:Card[]=PEDIA_RAW.split('\n').map((l,i)=>{const[q,r]=l.split('::');const Q=i<PEDIA_NQ;return{id:Q?1001+i:2001+(i-PEDIA_NQ),q,it:r.split('|'),grp:Q?'Questions':'Dossiers'}})
+import {DENGUE_RAW} from './algodata'
+export const DENGUE:Card[]=DENGUE_RAW.split('\n').map((l,i)=>{const[q,r]=l.split('::');return{id:2000+i+1,q,it:r.split('|')}})
 export interface Module{key:string;name:string;sub:string;code:string;hue:string;cards?:Card[]}
 export const MODULES:Module[]=[
 {key:'gyneco',name:'Gynécologie-Obstétrique',sub:'Cliniques & urgences',code:'GO',hue:'#e5546b',cards:GYNECO},
 {key:'pedia',name:'Pédiatrie',sub:'Questions & dossiers',code:'PE',hue:'#e0a31a',cards:PEDIA},
+{key:'dengue',name:'Dengue',sub:'Définitions & PEC',code:'DE',hue:'#0a8f7a',cards:DENGUE},
 {key:'cardio',name:'Cardiologie',sub:'Bientôt',code:'CA',hue:'#d94a3a'},
 {key:'chir',name:'Chirurgie',sub:'Bientôt',code:'CH',hue:'#3b82c4'},
 {key:'urg',name:'Urgences',sub:'Bientôt',code:'UR',hue:'#7a5bd6'},
