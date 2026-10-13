@@ -5,12 +5,14 @@ import Study from './Study'
 import {Icon,Tilt} from './ui'
 import Calc from './Calc'
 import Vitals from './Vitals'
+import Algo from './Algo'
+import Fin,{finSub} from './Fin'
 import {useBackLayer} from './nav'
 import {BRAND,HOME_URL,LINKS} from './brand'
 import {useInstall,useOnline} from './pwa'
 export interface Prog{st:Record<number,'k'|'n'|'d'>;fav:Record<number,boolean>}
 type Role='Interne'|'Résident'|'Étudiant'; interface Profile{name:string;role:Role}
-type Theme='auto'|'light'|'dark'; type Tab='home'|'study'|'calc'|'follow'|'me'
+type Theme='auto'|'light'|'dark'; type Tab='home'|'study'|'calc'|'algo'|'fin'|'follow'|'me'
 function useLS<T>(k:string,i:T){const[v,s]=useState<T>(()=>{try{const r=localStorage.getItem(k);return r?JSON.parse(r):i}catch{return i}})
  useEffect(()=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}},[k,v]);return[v,s] as const}
 const ROLES:Role[]=['Interne','Résident','Étudiant']
@@ -88,7 +90,7 @@ function Home({me,p,go,tool,theme,setTheme}:{me:Profile;p:Prog;go:(m:Module)=>vo
    <Tilt className={'mod'+(m.cards?'':' lock')} disabled={!m.cards} onClick={()=>m.cards&&go(m)}>
     <div className="em" aria-hidden="true">{m.code}</div><h4>{m.name}</h4><small>{m.sub}</small>{!m.cards&&<span className="lk"><Icon n="lock" s={16}/></span>}</Tilt></motion.div>)}</div>
   <h2 className="sec">Outils</h2>
-  <div className="grid">{([['calc','calc','Calculs','Scores & formules'],['follow','pulse','Suivi','Paramètres vitaux']] as [Tab,string,string,string][]).map(([t,i,n,s])=>
+  <div className="grid">{([['calc','calc','Calculs','Scores & formules'],['algo','branch','Algorithmes','Dengue : cours & PEC'],['fin','clock','Fin d\'internat',finSub()],['follow','pulse','Suivi','Paramètres vitaux']] as [Tab,string,string,string][]).map(([t,i,n,s])=>
    <Tilt key={t} className="mod" onClick={()=>tool(t)}><div className="em" aria-hidden="true"><Icon n={i}/></div><h4>{n}</h4><small>{s}</small></Tilt>)}</div>
   <Brand/>
  </div>
@@ -114,7 +116,7 @@ export default function App(){
  const [nonce,setNonce]=useState(0),online=useOnline(),inst=useInstall()
  useBackLayer(!splash&&!!me&&tab!=='home',()=>setTab('home'))
  const goTab=(k:Tab)=>{if(k===tab)setNonce(n=>n+1);else setTab(k)}
- const nav:[Tab,string,string][]=[['home','home','Accueil'],['study','cards','Résumés'],['calc','calc','Calculs'],['follow','pulse','Suivi'],['me','user','Profil']]
+ const nav:[Tab,string,string][]=[['home','home','Accueil'],['study','cards','Résumés'],['calc','calc','Calculs'],['algo','branch','Algos'],['follow','pulse','Suivi'],['me','user','Profil']]
  return <div className="stage"><div className="device">
   <div className="bgfx" aria-hidden="true"><i/><i/><i/></div>
   {!online&&<div className="offl" role="status">Hors ligne : tout fonctionne, tes données restent sur l'appareil</div>}
@@ -126,6 +128,8 @@ export default function App(){
     {tab==='study'&&<div className="page"><div className="top"><div><small>Module</small><h1 className="sm">{mod.name}</h1></div><button className="ib" onClick={()=>setTab('home')} aria-label="Retour"><Icon n="back"/></button></div>
      <Study cards={mod.cards!} p={p} setP={f=>setP(f)} onHome={()=>setTab('home')}/></div>}
     {tab==='calc'&&<Calc/>}
+    {tab==='algo'&&<Algo/>}
+    {tab==='fin'&&<Fin onBack={()=>setTab('home')}/>}
     {tab==='follow'&&<Vitals/>}
     {tab==='me'&&<Me me={me} setMe={setMe} theme={theme} setTheme={setTheme} reset={()=>setP({st:{},fav:{}})} inst={inst}/>}
    </motion.main>
